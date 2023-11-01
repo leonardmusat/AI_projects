@@ -62,9 +62,9 @@ def generate_CSP(matrix):
     for i in range(0, len(variables)-1):
 
         if i != 0:
-            csp.get("domains")[i] = [variables[i]]
-        if
-    return csp
+            csp.get("domains")[i] = [variables[i]]  # pentru variabilele care au deja valoarea completata le schimb domeniul intr o lista doar cu acea variabila
+        if  # aici vreau sa schimb si domeniul variabilelor care trebuie sa fie pare, le am declarat mai sus, even_variables,
+            return csp
 
 
 print(generate_CSP(matrix))
