@@ -15,56 +15,73 @@ matrix = [
 even_elements = [(2,2), (0,6), (2,8), (3,4), (4,3), (4,6), (4,5), (5,4), (0,6), (2,8), (6,6)]
 
 
-def get_neighbors(row, column):
+def get_neighbors(variable):
+    row, col = variable
     neighbors = set()
 
-    # get row
+    # Add neighbors in the same row
     for i in range(9):
-        neighbors.add(matrix[i][column])
+        if i != col:
+            neighbors.add((row, i))
 
-    # get column
+    # Add neighbors in the same column
     for i in range(9):
-        neighbors.add(matrix[row][i])
+        if i != row:
+            neighbors.add((i, col))
 
-    # get subgrid
-    start_row = row - (row % 3)
-    start_column = column - (column % 3)
-    for i in range(3):
-        for j in range(3):
-            neighbors.add(matrix[start_row + i][start_column + j])
-
-    neighbors.remove(matrix[row][column])
+    # Add neighbors in the same 3x3 subgrid
+    start_row = (row // 3) * 3
+    start_col = (col // 3) * 3
+    for i in range(start_row, start_row + 3):
+        for j in range(start_col, start_col + 3):
+            if (i, j) != variable:
+                neighbors.add((i, j))
 
     return list(neighbors)
 
 
-print(get_neighbors(6,4))
+#print(get_neighbors(a))
 
 
-def generate_CSP(matrix):
-
-    # create the variable list
-    variables = [element for element in matrix]
-
-    # create the domain for each variable in variables list
-    domains = {var: [pos for pos in range(1, 10)] for var in variables}
-
-    # find the neighbors for each variable
+def generate_dict(matrix):
+    variables = [(i, j) for i in range(9) for j in range(9)]
+    domains = {(i, j): [matrix[i][j]] if matrix[i][j] != 0 else (list(range(2, 10, 2)) if (i, j) in even_elements else list(range(1, 10))) for i, j in variables}
     neighbors = {var: get_neighbors(var) for var in variables}
 
-    # create a CSP dictionary
-    csp = {
+    dict = {
         "variables": variables,
         "domains": domains,
         "neighbors": neighbors
     }
 
-    for i in range(0, len(variables)-1):
+    return dict
 
-        if i != 0:
-            csp.get("domains")[i] = [variables[i]]  # pentru variabilele care au deja valoarea completata le schimb domeniul intr o lista doar cu acea variabila
-        if  # aici vreau sa schimb si domeniul variabilelor care trebuie sa fie pare, le am declarat mai sus, even_variables,
-            return csp
+dictionary = generate_dict(matrix)
+
+def is_complete(matrix):
+    for element in matrix:
+        if element == 0:
+            return False
+    return True
+
+def next_variable(matrix):
+    for row in range(9):
+        for col in range(9):
+            if matrix[row][col] == 0:
+                return row, col
+
+def verify_update(var, value):  #doar verific daca se poate face mutarea
+    for neighbor in get_neighbors(var):
+        for element in dictionary["domain"][neighbor]:
+            if (len(element) == 1 and element[0] == value):
+                return False
+    return True
 
 
-print(generate_CSP(matrix))
+def update_domains(var, value): #fac mutatrea propriu-zisa
+    # var = tupla cu coordonatele variabilei, val = valoarea din domeniu care urmeaza sa fie luata
+    for neighbor in get_neighbors(var):
+        for element in dictionary["domain"][neighbor]:
+            if (len(element) > 1 or  element[0] != value):
+                dictionary["domain"][neighbor].remove(value)
+    dictionary["domain"][var] = value
